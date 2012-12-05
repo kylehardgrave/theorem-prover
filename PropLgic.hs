@@ -19,3 +19,36 @@ instance Show Prop where
   show (Or p q)  = "(" ++ (show p) ++ " || " ++ (show q) ++ ")"
   show F         = "!"
 
+
+-- | Logical negation
+neg :: Prop -> Prop
+neg p = Imp p F
+
+
+-- | Bidirectional implication
+iff :: Prop -> Prop -> Prop
+p `iff` q = And (Imp p q) (Imp q p)
+
+
+-- Some shorcuts
+(<&&>) :: Prop -> Prop -> Prop
+(<&&>) = And
+
+(<||>) :: Prop -> Prop -> Prop
+(<||>) = Or
+
+imp :: Prop -> Prop -> Prop
+imp = Imp
+
+(==>) :: Char -> Char -> Prop
+p ==> q = (Var p) `imp` (Var q)
+
+(<&>) :: Char -> Char -> Prop
+p <&> q = (Var p) <&&> (Var q)
+
+(<|>) :: Char -> Char -> Prop
+p <|> q = (Var p) <||> (Var q)
+
+(!) :: Char -> Prop
+(!) p = Imp (Var p) F
+
