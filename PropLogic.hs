@@ -62,14 +62,22 @@ wsP :: GenParser Char a -> GenParser Char a
 wsP p = between whitespace p whitespace where
   whitespace = many $ choice [string " ", string "\n"]
 
---propP :: GenParser Prop Prop
+propP :: GenParser Prop Prop
+propP F = undefined
+propP (Var a) = undefined
+propP (And p1 p2) = undefined
+propP (Or p1 p2) = undefined
+propP (Imp p1 p2) = undefined
 
 -- | Simple Tests
 p1 :: Prop
 p1 = Imp (And (Var 'P') (Var 'Q')) (Var 'P')
+p2 :: Prop
+p2 = Imp (Or (Var 'A') (And (Var 'P') (Var 'Q'))) (Var 'P')
 
 t0 :: Test
-t0 = TestList [ display p1 ~?= "((P && Q) => P)" ]
+t0 = TestList [ display p1 ~?= "((P && Q) => P)",
+                display p2 ~?= "((A || (P && Q)) => P)"]
 
 main :: IO()
 main = do
