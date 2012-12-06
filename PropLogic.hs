@@ -1,6 +1,6 @@
 {-# LANGUAGE GADTs #-}
 
-module PropLgic where
+module PropLogic where
 
 import Parser
 import ParserCombinators

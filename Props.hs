@@ -1,5 +1,5 @@
 -- Some example propositions
-import PropLgic
+import PropLogic
 
 
 p = Imp (And (Var 'P') (Var 'Q')) (Var 'P')
