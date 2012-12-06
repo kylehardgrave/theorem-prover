@@ -2,6 +2,8 @@
 
 module PropLgic where
 
+import Parser
+import ParserCombinators
 
 -- | A proposition in formal, propositional logic
 data Prop where
