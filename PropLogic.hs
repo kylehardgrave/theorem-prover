@@ -5,6 +5,9 @@ module PropLogic where
 import Parser
 import ParserCombinators
 
+--import Test.QuickCheck
+import Test.HUnit
+
 -- | A proposition in formal, propositional logic
 data Prop where
   F   :: Prop
@@ -21,11 +24,12 @@ instance Show Prop where
   show (Or p q)  = "(" ++ (show p) ++ " || " ++ (show q) ++ ")"
   show F         = "!"
 
+display :: (Show a) => a -> String
+display = show
 
 -- | Logical negation
 neg :: Prop -> Prop
 neg p = Imp p F
-
 
 -- | Bidirectional implication
 iff :: Prop -> Prop -> Prop
@@ -53,4 +57,23 @@ p <|> q = (Var p) <||> (Var q)
 
 (!) :: Char -> Prop
 (!) p = Imp (Var p) F
+
+wsP :: GenParser Char a -> GenParser Char a
+wsP p = between whitespace p whitespace where
+  whitespace = many $ choice [string " ", string "\n"]
+
+--propP :: GenParser Prop Prop
+
+-- | Simple Tests
+p1 :: Prop
+p1 = Imp (And (Var 'P') (Var 'Q')) (Var 'P')
+
+t0 :: Test
+t0 = TestList [ display p1 ~?= "((P && Q) => P)" ]
+
+main :: IO()
+main = do
+  _ <- runTestTT (TestList [ t0 ])
+  return ()
+
 
