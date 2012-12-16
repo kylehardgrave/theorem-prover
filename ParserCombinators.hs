@@ -142,7 +142,7 @@ t2 = doParse fP "!A => B" ~?= [(F, "A => B")]
 t2' = doParse fP "!XYZ && Y => Z" ~?= [(F, "XYZ && Y => Z")]
 t2'' = doParse fP "!X||Y => Z" ~?= [(F, "X||Y => Z")]
 
-opP :: GenParser Char (Prop -> Prop -> Prop)
+opP :: GenParser Char Op
 opP = let ops = map (\(str, op) -> (constP str op)) [
             ("=>", Imp),
             ("&&", And),
@@ -187,6 +187,7 @@ t3' = TestList [doParse exprP "!X" ~?= [((!)'X', "")],
                   doParse exprP "!(X)" ~?= [((!)'X', "")],
                   doParse exprP "(!X)" ~?= [((!)'X', "")]]
 t3'' = TestList [doParse exprP "(A => B)" ~?= [('A' ==> 'B', "")]]
+
 getParens :: GenParser Char a -> GenParser Char a
 getParens p = do
   char '('
