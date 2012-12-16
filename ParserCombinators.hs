@@ -137,10 +137,10 @@ fP = do
   _ <- constP "!" F <-> fail "Not Falsity"
   return F
 
-t2, t2', t2'' :: Test
+t2, t2' :: Test
 t2 = doParse fP "!A => B" ~?= [(F, "A => B")]
-t2' = doParse fP "!XYZ && Y => Z" ~?= [(F, "XYZ && Y => Z")]
-t2'' = doParse fP "!X||Y => Z" ~?= [(F, "X||Y => Z")]
+t2' = TestList [doParse fP "!XYZ && Y => Z" ~?= [(F, "XYZ && Y => Z")],
+                  doParse fP "!X||Y => Z" ~?= [(F, "X||Y => Z")]]
 
 opP :: GenParser Char Op
 opP = let ops = map (\(str, op) -> (constP str op)) [
@@ -151,6 +151,14 @@ opP = let ops = map (\(str, op) -> (constP str op)) [
       do 
         o <- choice ops
         return o
+t2'' :: Test
+t2'' = TestList [doParse opP "=>" ~?= [(Imp, "")],
+                  doParse opP "&&" ~?= [(And, "")],
+                  doParse opP "||" ~?= [(Or, "")],
+                  doParse opP "=> B)" ~?= [(Imp, " B)")],
+                  doParse opP "&& B)" ~?= [(And, " B)")],
+                  doParse opP "|| B)" ~?= [(Or, " B)")]]
+        
 
 exprP :: GenParser Char Prop
 exprP = wsP (choice [ opParser, getParens opParser, 
