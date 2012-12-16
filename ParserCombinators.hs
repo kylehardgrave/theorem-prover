@@ -1,7 +1,7 @@
 -- Advanced Programming, HW 5
 -- by Jason Mow (jmow), Kyle Hardgrave (kyleh)
 
-{-# OPTIONS -Wall -fwarn-tabs -fno-warn-type-defaults -fno-warn-unused-do-bind -XFlexibleInstances #-}
+{-# OPTIONS -Wall -fwarn-tabs -fno-warn-type-defaults -fno-warn-unused-do-bind #-}
 
 -- CIS 552, University of Pennsylvania
 -- based on Parsec and ReadP parsing libraries
@@ -124,16 +124,16 @@ tp = TestList [ t1, t1', t1'', t2, t2', t2'' ]
 -- | Parses a variable, ignores following uppers
 --    Does not handle lowers in input, lowers are invalid
 --    See tests for definition
-varP :: GenParser Char Prop
+varP :: GenParser Char Char
 varP = do
   (x:_) <- many1 upper
-  return (Var x)
+  return x
 
 t1, t1', t1'' :: Test
-t1 = doParse varP "A => B" ~?= [(Var 'A', " => B")]
+t1 = doParse varP "A => B" ~?= [('A', " => B")]
 -- YZ is ignored here, because it is invalid for variables to be strings
-t1' = doParse varP "XYZ && Y => Z" ~?= [(Var 'X', " && Y => Z")]
-t1'' = doParse varP "X||Y => Z" ~?= [(Var 'X', "||Y => Z")]
+t1' = doParse varP "XYZ && Y => Z" ~?= [('X', " && Y => Z")]
+t1'' = doParse varP "X||Y => Z" ~?= [('X', "||Y => Z")]
 
 fP :: GenParser Char Prop
 fP = do
@@ -156,10 +156,10 @@ opP = let ops = map (\(str, op) -> (constP str op)) [
         o <- choice ops
         return o
 
---exprP :: GenParser Char Prop
---exprP = wsP (choice [opParser, getParens opParser, liftM Var (wsP varP),
---  getParens (liftM Var (wsP varP))]) where
---  opParser = undefined
+exprP :: GenParser Char Prop
+exprP = wsP (choice [opParser, getParens opParser, liftM Var (wsP varP),
+  getParens (liftM Var (wsP varP))]) where
+  opParser = undefined
 
 getParens :: GenParser Char a -> GenParser Char a
 getParens p = do
