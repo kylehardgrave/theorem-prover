@@ -157,9 +157,25 @@ opP = let ops = map (\(str, op) -> (constP str op)) [
         return o
 
 exprP :: GenParser Char Prop
-exprP = wsP (choice [opParser, getParens opParser, liftM Var (wsP varP),
+exprP = wsP (choice [opParser, negParser, liftM Var (wsP varP), 
   getParens (liftM Var (wsP varP))]) where
-  opParser = undefined
+  -- | Operator Props must be surrounded in parentheses
+  --  i.e. (A => B), (A && B), (A || B)
+  opParser :: GenParser Char Prop
+  opParser = do
+    exp1 <- getParens (liftM Var (wsP varP))
+    op <- wsP opP
+    exp2 <- getParens (liftM Var (wsP varP))
+    return liftM op (return exp1) (return exp2)
+
+  negParser :: GenParser Char Prop
+  negParser = do
+    t <- getC
+    case t of
+      '!' -> do
+        v <- wsP varP
+        liftM (!) (return v)
+      _   -> fail "Not negation"
 
 getParens :: GenParser Char a -> GenParser Char a
 getParens p = do
