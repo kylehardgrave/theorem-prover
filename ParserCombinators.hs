@@ -14,6 +14,7 @@ import Data.Char
 import System.IO
 
 import Test.HUnit
+import qualified Test.QuickCheck as QC
 
 type ParseError = String
 
@@ -203,7 +204,7 @@ t3''' = TestList [doParse exprP "(!A && (P => B))" ~?= [((<&&>) ((!)'A') ('P' ==
                   doParse exprP "(!A => (P || !B))" ~?= [(imp ((!)'A') ((<||>) (Var 'P') ((!)'B')), "")],
                   doParse exprP "(( A || !B ) => ((!P && !Q) || P))" ~?= 
                     [(imp ((<||>) (Var 'A') ((!)'B')) ((<||>) ((<&&>) ((!)'P') ((!)'Q') ) (Var 'P')), "")]]
-                    
+
 getParens :: GenParser Char a -> GenParser Char a
 getParens p = do
   char '('
@@ -211,6 +212,18 @@ getParens p = do
   char ')'
   return x
 
+instance QC.Arbitrary Op where
+  arbitrary = QC.elements [Imp, And, Or]
+
+--instance QC.Arbitrary Prop where
+--  arbitrary = QC.sized arbPropGen
+
+--arbPropGen :: Int -> QC.Gen Prop
+--arbPropGen n = QC.frequency ([
+--        (2, liftM Var QC.arbitrary),
+--        (1, return F),
+--        (n, liftM Exp QC.arbitrary (arbPropGen(n/2) (arbPropGen(n/2))))
+--  ])
 
 tp :: Test
 tp = TestList [ t1, t1', t1'', t2, t2', t2'', t3, t3', t3'', t3''']
