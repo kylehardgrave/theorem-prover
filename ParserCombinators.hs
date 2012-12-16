@@ -170,9 +170,9 @@ exprP = wsP (choice [ opParser, getParens opParser,
   opParser :: GenParser Char Prop
   opParser = do
     char '('
-    exp1 <- varParser
+    exp1 <- exprP
     op <- wsP opP
-    exp2 <- varParser
+    exp2 <- exprP
     char ')'
     return (Exp op exp1 exp2)
 
@@ -188,7 +188,7 @@ exprP = wsP (choice [ opParser, getParens opParser,
   varParser :: GenParser Char Prop
   varParser = liftM Var (wsP varP)
 
-t3, t3', t3'' :: Test
+t3, t3', t3'', t3''':: Test
 t3 = TestList [doParse exprP "A" ~?= [(Var 'A', "")],
                doParse exprP "(A)" ~?= [(Var 'A', "")]]
 t3' = TestList [doParse exprP "!X" ~?= [((!)'X', "")],
@@ -199,7 +199,11 @@ t3'' = TestList [doParse exprP "(A => B)" ~?= [('A' ==> 'B', "")],
                   doParse exprP "(A => !B)" ~?= [(imp (Var 'A') ((!) 'B'), "")],
                   doParse exprP "((A => B) => B)" ~?= [(imp ('A' ==> 'B') (Var 'B'), "")],
                   doParse exprP "(A => (A => B))" ~?= [(imp (Var 'A') ('A' ==> 'B'), "")]]
-
+t3''' = TestList [doParse exprP "(!A && (P => B))" ~?= [((<&&>) ((!)'A') ('P' ==> 'B'), "")],
+                  doParse exprP "(!A => (P || !B))" ~?= [(imp ((!)'A') ((<||>) (Var 'P') ((!)'B')), "")],
+                  doParse exprP "(( A || !B ) => ((!P && !Q) || P))" ~?= 
+                    [(imp ((<||>) (Var 'A') ((!)'B')) ((<||>) ((<&&>) ((!)'P') ((!)'Q') ) (Var 'P')), "")]]
+                    
 getParens :: GenParser Char a -> GenParser Char a
 getParens p = do
   char '('
@@ -209,7 +213,7 @@ getParens p = do
 
 
 tp :: Test
-tp = TestList [ t1, t1', t1'', t2, t2', t2'', t3, t3', t3'']
+tp = TestList [ t1, t1', t1'', t2, t2', t2'', t3, t3', t3'', t3''']
 
 main :: IO()
 main = do
