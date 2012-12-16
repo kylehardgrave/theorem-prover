@@ -118,9 +118,6 @@ constP s x = do
   _ <- string s
   return x
 
-tp :: Test
-tp = TestList [ t1, t1', t1'', t2, t2', t2'' ]
-
 -- | Parses a variable, ignores following uppers
 --    Does not handle lowers in input, lowers are invalid
 --    See tests for definition
@@ -142,7 +139,6 @@ fP = do
 
 t2, t2', t2'' :: Test
 t2 = doParse fP "!A => B" ~?= [(F, "A => B")]
--- YZ is ignored here, because it is invalid for variables to be strings
 t2' = doParse fP "!XYZ && Y => Z" ~?= [(F, "XYZ && Y => Z")]
 t2'' = doParse fP "!X||Y => Z" ~?= [(F, "X||Y => Z")]
 
@@ -157,15 +153,19 @@ opP = let ops = map (\(str, op) -> (constP str op)) [
         return o
 
 exprP :: GenParser Char Prop
-exprP = wsP (choice [opParser, negParser, getParens negParser, liftM Var (wsP varP), 
-  getParens (liftM Var (wsP varP))]) where
+exprP = wsP (choice [ opParser, getParens opParser, 
+                      negParser, getParens negParser,
+                      varParser, getParens varParser]) where
+
   -- | Operator Props must be surrounded in parentheses
   --  i.e. (A => B), (A && B), (A || B)
   opParser :: GenParser Char Prop
   opParser = do
-    exp1 <- getParens (liftM Var (wsP varP))
+    char '('
+    exp1 <- varParser
     op <- wsP opP
-    exp2 <- getParens (liftM Var (wsP varP))
+    exp2 <- varParser
+    char ')'
     return liftM op (return exp1) (return exp2)
 
   negParser :: GenParser Char Prop
@@ -177,12 +177,27 @@ exprP = wsP (choice [opParser, negParser, getParens negParser, liftM Var (wsP va
         return (neg v)
       _   -> fail "Not negation"
 
+  varParser :: GenParser Char Prop
+  varParser = liftM Var (wsP varP)
+
+t3, t3', t3'' :: Test
+t3 = TestList [doParse exprP "A" ~?= [(Var 'A', "")],
+               doParse exprP "(A)" ~?= [(Var 'A', "")]]
+t3' = TestList [doParse exprP "!X" ~?= [((!)'X', "")],
+                  doParse exprP "!(X)" ~?= [((!)'X', "")],
+                  doParse exprP "(!X)" ~?= [((!)'X', "")]]
+t3'' = TestList [doParse exprP "(A => B)" ~?= [('A' ==> 'B', "")]]
+
 getParens :: GenParser Char a -> GenParser Char a
 getParens p = do
   char '('
   x <- p
   char ')'
   return x
+
+
+tp :: Test
+tp = TestList [ t1, t1', t1'', t2, t2', t2'', t3, t3', t3'']
 
 main :: IO()
 main = do

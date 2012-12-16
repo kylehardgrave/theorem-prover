@@ -1,4 +1,5 @@
 {-# LANGUAGE GADTs #-}
+{-# OPTIONS_GHC -XFlexibleInstances #-}
 
 module PropLogic where
 
@@ -26,7 +27,7 @@ instance Show Prop where
   show (Imp p q) = "(" ++ (show p) ++ " => " ++ (show q) ++ ")"
   show (And p q) = "(" ++ (show p) ++ " && " ++ (show q) ++ ")"
   show (Or p q)  = "(" ++ (show p) ++ " || " ++ (show q) ++ ")"
-  show F         = "!"
+  show F         = "!"  
 
 display :: (Show a) => a -> String
 display = show
