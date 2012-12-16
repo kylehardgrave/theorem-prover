@@ -1,7 +1,7 @@
 -- Advanced Programming, HW 5
 -- by Jason Mow (jmow), Kyle Hardgrave (kyleh)
 
-{-# OPTIONS -Wall -fwarn-tabs -fno-warn-type-defaults  #-}
+{-# OPTIONS -Wall -fwarn-tabs -fno-warn-type-defaults -fno-warn-unused-do-bind -XFlexibleInstances #-}
 
 -- CIS 552, University of Pennsylvania
 -- based on Parsec and ReadP parsing libraries
@@ -118,27 +118,55 @@ constP s x = do
   _ <- string s
   return x
 
-fP :: GenParser Char Prop
-fP = do
-  c <- constP "!" F <-> fail "Not Falsity"
-  return F
+tp :: Test
+tp = TestList [ t1, t1', t1'', t2, t2', t2'' ]
 
 -- | Parses a variable, ignores following uppers
 --    Does not handle lowers in input, lowers are invalid
 --    See tests for definition
 varP :: GenParser Char Prop
 varP = do
-  (x:xs) <- many1 upper
+  (x:_) <- many1 upper
   return (Var x)
 
-tp :: Test
-tp = TestList [ t1c0, t1c1, t1c2 ]
-
-t1c0, t1c1, t1c2 :: Test
-t1c0 = doParse varP "A => B" ~?= [(Var 'A', " => B")]
+t1, t1', t1'' :: Test
+t1 = doParse varP "A => B" ~?= [(Var 'A', " => B")]
 -- YZ is ignored here, because it is invalid for variables to be strings
-t1c1 = doParse varP "XYZ && Y => Z" ~?= [(Var 'X', " && Y => Z")]
-t1c2 = doParse varP "X||Y => Z" ~?= [(Var 'X', "||Y => Z")]
+t1' = doParse varP "XYZ && Y => Z" ~?= [(Var 'X', " && Y => Z")]
+t1'' = doParse varP "X||Y => Z" ~?= [(Var 'X', "||Y => Z")]
+
+fP :: GenParser Char Prop
+fP = do
+  _ <- constP "!" F <-> fail "Not Falsity"
+  return F
+
+t2, t2', t2'' :: Test
+t2 = doParse fP "!A => B" ~?= [(F, "A => B")]
+-- YZ is ignored here, because it is invalid for variables to be strings
+t2' = doParse fP "!XYZ && Y => Z" ~?= [(F, "XYZ && Y => Z")]
+t2'' = doParse fP "!X||Y => Z" ~?= [(F, "X||Y => Z")]
+
+opP :: GenParser Char (Prop -> Prop -> Prop)
+opP = let ops = map (\(str, op) -> (constP str op)) [
+            ("=>", Imp),
+            ("&&", And),
+            ("||", Or)
+            ] in
+      do 
+        o <- choice ops
+        return o
+
+--exprP :: GenParser Char Prop
+--exprP = wsP (choice [opParser, getParens opParser, liftM Var (wsP varP),
+--  getParens (liftM Var (wsP varP))]) where
+--  opParser = undefined
+
+getParens :: GenParser Char a -> GenParser Char a
+getParens p = do
+  char '('
+  x <- p
+  char ')'
+  return x
 
 main :: IO()
 main = do
