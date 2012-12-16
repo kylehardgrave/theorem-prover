@@ -187,7 +187,6 @@ t3' = TestList [doParse exprP "!X" ~?= [((!)'X', "")],
                   doParse exprP "!(X)" ~?= [((!)'X', "")],
                   doParse exprP "(!X)" ~?= [((!)'X', "")]]
 t3'' = TestList [doParse exprP "(A => B)" ~?= [('A' ==> 'B', "")]]
-
 getParens :: GenParser Char a -> GenParser Char a
 getParens p = do
   char '('

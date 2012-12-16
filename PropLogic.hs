@@ -17,7 +17,7 @@ data Prop where
 
 -- This is the same as:
 --data Prop = F
---          | Var Char Prop
+--          | Var Char
 --          | And Prop Prop
 --          | Or Prop Prop
 --          | Imp Prop Prop
