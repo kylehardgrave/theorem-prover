@@ -2,11 +2,11 @@
 
 module PropLogic where
 
-import Parser
-import ParserCombinators
-
---import Test.QuickCheck
-import Test.HUnit
+import qualified Data.Set as Set
+import           Parser
+import           ParserCombinators
+import           Test.QuickCheck
+import           Test.HUnit
 
 -- | A proposition in formal, propositional logic
 data Prop where
@@ -23,6 +23,43 @@ instance Show Prop where
   show (And p q) = "(" ++ (show p) ++ " && " ++ (show q) ++ ")"
   show (Or p q)  = "(" ++ (show p) ++ " || " ++ (show q) ++ ")"
   show F         = "!"
+
+-- | A given set of assumptions.
+data Gam = Set.Set Prop
+
+-- | A proof.
+data Proof where
+  AssumeP :: Prop  -> Proof
+  ImpP    :: Proof -> Proof
+  AndP    :: Proof -> Proof -> Proof
+--  OrP1 :: Proof a -> Proof (Or a b)
+--  OrP2 :: Proof b -> Proof (Or a b)
+--  AndP :: Proof a -> Proof b -> Proof (And a b)
+--  VarP :: Proof (And a b) -> Proof 
+
+
+-- First pass at the proof types, sans monads or GADTs
+prove :: Gam -> Prop -> Maybe Proof
+prove g p | p `Set.member` g = Just $ AssumeP p
+          | otherwise        = prove' p
+  where prove' (Var _) = Nothing
+        prove' (Imp q r) = case prove (Set.insert q g) r of
+          Just t -> ImpP t p
+          _      -> Nothing
+        prove' (And q r) = case (prove g q, prove g r) of
+          (Just t, Just u) -> AndP t u p
+          _                -> Nothing
+        prove' (Or q r) = case (prove g q, prove g r) of
+          (Just t, _) -> OrP t p
+          (_, Just t) -> OrP t p
+          _           -> Nothing
+        prove' -- TOOD
+  
+  
+  @(Var c) | c `Set.member` p = Just $ VarP g
+                | otherwise        = Nothing
+prove g (And a b) = 
+
 
 display :: (Show a) => a -> String
 display = show
