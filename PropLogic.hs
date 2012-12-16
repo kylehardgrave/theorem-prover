@@ -2,9 +2,6 @@
 
 module PropLogic where
 
-import Parser
-import ParserCombinators
-
 --import Test.QuickCheck
 import Test.HUnit
 
@@ -18,7 +15,7 @@ data Prop where
   deriving Eq
 
 instance Show Prop where
-  show (Var c)   = [c]
+  show (Var c)   = [c] 
   show (Imp p q) = "(" ++ (show p) ++ " => " ++ (show q) ++ ")"
   show (And p q) = "(" ++ (show p) ++ " && " ++ (show q) ++ ")"
   show (Or p q)  = "(" ++ (show p) ++ " || " ++ (show q) ++ ")"
@@ -57,17 +54,6 @@ p <|> q = (Var p) <||> (Var q)
 
 (!) :: Char -> Prop
 (!) p = Imp (Var p) F
-
-wsP :: GenParser Char a -> GenParser Char a
-wsP p = between whitespace p whitespace where
-  whitespace = many $ choice [string " ", string "\n"]
-
-propP :: GenParser Prop Prop
-propP F = undefined
-propP (Var a) = undefined
-propP (And p1 p2) = undefined
-propP (Or p1 p2) = undefined
-propP (Imp p1 p2) = undefined
 
 -- | Simple Tests
 p1 :: Prop

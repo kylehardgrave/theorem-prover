@@ -7,7 +7,7 @@
 module Parser (GenParser, Parser, 
                    getC,
                    choose,
-                   (<|>),
+                   (<->),
                    satisfy,
                    doParse,  
                    ) where
@@ -48,8 +48,8 @@ p1 `choose` p2 = StateT (\cs -> doParse p1 cs ++ doParse p2 cs)
 -- | Combine two parsers together in parallel, but only use the 
 -- first result. This means that the second parser is used only 
 -- if the first parser completely fails. 
-(<|>) :: GenParser e a -> GenParser e a -> GenParser e a
-p1 <|> p2 = StateT $ \cs -> case doParse (p1 `choose` p2) cs of
+(<->) :: GenParser e a -> GenParser e a -> GenParser e a
+p1 <-> p2 = StateT $ \cs -> case doParse (p1 `choose` p2) cs of
                               []  -> []
                               x:_ -> [x]
 
