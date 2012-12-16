@@ -174,7 +174,7 @@ exprP = wsP (choice [ opParser, getParens opParser,
     op <- wsP opP
     exp2 <- varParser
     char ')'
-    return liftM op (return exp1) (return exp2)
+    return (Exp op exp1 exp2)
 
   negParser :: GenParser Char Prop
   negParser = do
@@ -194,7 +194,11 @@ t3 = TestList [doParse exprP "A" ~?= [(Var 'A', "")],
 t3' = TestList [doParse exprP "!X" ~?= [((!)'X', "")],
                   doParse exprP "!(X)" ~?= [((!)'X', "")],
                   doParse exprP "(!X)" ~?= [((!)'X', "")]]
-t3'' = TestList [doParse exprP "(A => B)" ~?= [('A' ==> 'B', "")]]
+t3'' = TestList [doParse exprP "(A => B)" ~?= [('A' ==> 'B', "")],
+                  doParse exprP "(!A => B)" ~?= [(imp ((!)'A') (Var 'B'), "")],
+                  doParse exprP "(A => !B)" ~?= [(imp (Var 'A') ((!) 'B'), "")],
+                  doParse exprP "((A => B) => B)" ~?= [(imp ('A' ==> 'B') (Var 'B'), "")],
+                  doParse exprP "(A => (A => B))" ~?= [(imp (Var 'A') ('A' ==> 'B'), "")]]
 
 getParens :: GenParser Char a -> GenParser Char a
 getParens p = do
