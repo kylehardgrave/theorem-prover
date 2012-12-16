@@ -14,6 +14,13 @@ data Prop where
   Imp :: Prop -> Prop -> Prop
   deriving Eq
 
+-- This is the same as:
+--data Prop = F
+--          | Var Char Prop
+--          | And Prop Prop
+--          | Or Prop Prop
+--          | Imp Prop Prop
+
 instance Show Prop where
   show (Var c)   = [c] 
   show (Imp p q) = "(" ++ (show p) ++ " => " ++ (show q) ++ ")"
