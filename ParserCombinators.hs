@@ -8,7 +8,7 @@
 module ParserCombinators where
 
 import Parser
-import PropLogic
+import PropLogic hiding (main)
 import Control.Monad
 import Data.Char
 import System.IO
@@ -118,8 +118,8 @@ constP s x = do
   _ <- string s
   return x
 
-falsityP :: GenParser Char Prop
-falsityP = do
+fP :: GenParser Char Prop
+fP = do
   c <- constP "!" F <-> fail "Not Falsity"
   return F
 
@@ -131,13 +131,19 @@ varP = do
   (x:xs) <- many1 upper
   return (Var x)
 
+tp :: Test
+tp = TestList [ t1c0, t1c1, t1c2 ]
+
 t1c0, t1c1, t1c2 :: Test
 t1c0 = doParse varP "A => B" ~?= [(Var 'A', " => B")]
 -- YZ is ignored here, because it is invalid for variables to be strings
 t1c1 = doParse varP "XYZ && Y => Z" ~?= [(Var 'X', " && Y => Z")]
 t1c2 = doParse varP "X||Y => Z" ~?= [(Var 'X', "||Y => Z")]
 
-
+main :: IO()
+main = do
+  _ <- runTestTT (TestList [ tp ])
+  return ()
 
 --propP :: GenParser Prop Prop
 --propP F = undefined
