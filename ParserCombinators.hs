@@ -163,6 +163,7 @@ t2'' = TestList [doParse opP "=>" ~?= [(Imp, "")],
 
 exprP :: GenParser Char Prop
 exprP = wsP (choice [ opParser, getParens opParser, 
+                      --falsityParser, getParens falsityParser,
                       negParser, getParens negParser,
                       varParser, getParens varParser]) where
 
@@ -185,6 +186,17 @@ exprP = wsP (choice [ opParser, getParens opParser,
         v <- exprP
         return (neg v)
       _   -> fail "Not negation"
+
+  --falsityParser :: GenParser Char Prop
+  --falsityParser = do
+  --  char '('
+  --  t <- getC
+  --  case t of
+  --    '!' -> do
+  --      op <- wsp opP
+  --      exp2 <- exprP
+
+
 
   varParser :: GenParser Char Prop
   varParser = liftM Var (wsP varP)
@@ -215,15 +227,22 @@ getParens p = do
 instance QC.Arbitrary Op where
   arbitrary = QC.elements [Imp, And, Or]
 
---instance QC.Arbitrary Prop where
---  arbitrary = QC.sized arbPropGen
+instance QC.Arbitrary Prop where
+  arbitrary = QC.sized arbPropGen
 
---arbPropGen :: Int -> QC.Gen Prop
---arbPropGen n = QC.frequency ([
---        (2, liftM Var QC.arbitrary),
---        (1, return F),
---        (n, liftM Exp QC.arbitrary (arbPropGen(n/2) (arbPropGen(n/2))))
---  ])
+arbPropGen :: Int -> QC.Gen Prop
+arbPropGen n = QC.frequency ([
+        (2, liftM Var (QC.elements['A', 'B', 'C', 'D', 'E', 'Q', 'P', 'X', 'Y', 'Z'])),
+        (1, liftM (!) (QC.elements['A', 'B', 'C', 'D', 'E', 'Q', 'P', 'X', 'Y', 'Z'])),
+        (n, liftM3 Exp QC.arbitrary (arbPropGen(n `div` 2)) (arbPropGen(n `div` 2)))
+  ])
+
+propParse :: Prop -> Bool
+propParse st = doParse exprP p == [(st, "")] where
+  p = show st
+
+qc1 :: IO ()
+qc1 = QC.quickCheck propParse
 
 tp :: Test
 tp = TestList [ t1, t1', t1'', t2, t2', t2'', t3, t3', t3'', t3''']
@@ -231,6 +250,7 @@ tp = TestList [ t1, t1', t1'', t2, t2', t2'', t3, t3', t3'', t3''']
 main :: IO()
 main = do
   _ <- runTestTT (TestList [ tp ])
+  qc1
   return ()
 
 --propP :: GenParser Prop Prop
