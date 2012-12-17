@@ -163,8 +163,8 @@ t2'' = TestList [doParse opP "=>" ~?= [(Imp, "")],
 
 exprP :: GenParser Char Prop
 exprP = wsP (choice [ opParser, getParens opParser, 
-                      --falsityParser, getParens falsityParser,
-                      negParser, getParens negParser,
+                      falsityExprParser, getParens falsityExprParser,
+                      negationParser, getParens negationParser,
                       varParser, getParens varParser]) where
 
   -- | Operator Props must be surrounded in parentheses
@@ -178,8 +178,8 @@ exprP = wsP (choice [ opParser, getParens opParser,
     char ')'
     return (Exp op exp1 exp2)
 
-  negParser :: GenParser Char Prop
-  negParser = do
+  negationParser :: GenParser Char Prop
+  negationParser = do
     t <- getC
     case t of
       '!' -> do
@@ -187,23 +187,25 @@ exprP = wsP (choice [ opParser, getParens opParser,
         return (neg v)
       _   -> fail "Not negation"
 
-  --falsityParser :: GenParser Char Prop
-  --falsityParser = do
-  --  char '('
-  --  t <- getC
-  --  case t of
-  --    '!' -> do
-  --      op <- wsp opP
-  --      exp2 <- exprP
-
-
+  falsityExprParser :: GenParser Char Prop
+  falsityExprParser = do
+    char '('
+    t <- getC
+    case t of
+      '!' -> do
+        op <- wsP opP
+        exp2 <- exprP
+        char ')'
+        return (Exp op F exp2)
+      _   -> fail "Not falsity"
 
   varParser :: GenParser Char Prop
-  varParser = liftM Var (wsP varP)
+  varParser = liftM Var (wsP varP) <-> fP
 
 t3, t3', t3'', t3''':: Test
 t3 = TestList [doParse exprP "A" ~?= [(Var 'A', "")],
-               doParse exprP "(A)" ~?= [(Var 'A', "")]]
+               doParse exprP "(A)" ~?= [(Var 'A', "")],
+               doParse exprP "!" ~?= [(F, "")]]
 t3' = TestList [doParse exprP "!X" ~?= [((!)'X', "")],
                   doParse exprP "!(X)" ~?= [((!)'X', "")],
                   doParse exprP "(!X)" ~?= [((!)'X', "")]]
@@ -211,7 +213,8 @@ t3'' = TestList [doParse exprP "(A => B)" ~?= [('A' ==> 'B', "")],
                   doParse exprP "(!A => B)" ~?= [(imp ((!)'A') (Var 'B'), "")],
                   doParse exprP "(A => !B)" ~?= [(imp (Var 'A') ((!) 'B'), "")],
                   doParse exprP "((A => B) => B)" ~?= [(imp ('A' ==> 'B') (Var 'B'), "")],
-                  doParse exprP "(A => (A => B))" ~?= [(imp (Var 'A') ('A' ==> 'B'), "")]]
+                  doParse exprP "(A => (A => B))" ~?= [(imp (Var 'A') ('A' ==> 'B'), "")],
+                  doParse exprP "(!A => (A => !B))" ~?= [(imp ((!) 'A') (imp (Var 'A') ((!)'B')), "")]]
 t3''' = TestList [doParse exprP "(!A && (P => B))" ~?= [((<&&>) ((!)'A') ('P' ==> 'B'), "")],
                   doParse exprP "(!A => (P || !B))" ~?= [(imp ((!)'A') ((<||>) (Var 'P') ((!)'B')), "")],
                   doParse exprP "(( A || !B ) => ((!P && !Q) || P))" ~?= 
@@ -234,6 +237,7 @@ arbPropGen :: Int -> QC.Gen Prop
 arbPropGen n = QC.frequency ([
         (2, liftM Var (QC.elements['A', 'B', 'C', 'D', 'E', 'Q', 'P', 'X', 'Y', 'Z'])),
         (1, liftM (!) (QC.elements['A', 'B', 'C', 'D', 'E', 'Q', 'P', 'X', 'Y', 'Z'])),
+        (1, return F),
         (n, liftM3 Exp QC.arbitrary (arbPropGen(n `div` 2)) (arbPropGen(n `div` 2)))
   ])
 
@@ -243,6 +247,7 @@ propParse st = doParse exprP p == [(st, "")] where
 
 qc1 :: IO ()
 qc1 = QC.quickCheck propParse
+--qc1 = QC.verboseCheck propParse
 
 tp :: Test
 tp = TestList [ t1, t1', t1'', t2, t2', t2'', t3, t3', t3'', t3''']
@@ -253,11 +258,13 @@ main = do
   qc1
   return ()
 
---propP :: GenParser Prop Prop
---propP F = undefined
---propP (Var a) = undefined
---propP (And p1 p2) = undefined
---propP (Or p1 p2) = undefined
---propP (Imp p1 p2) = undefine
+type Lexer = GenParser Char [Prop]
+
+--lexer :: Lexer 
+--lexer = sepBy1
+--        (liftM (!) valueP <|>
+--         liftM Var varP   <|>
+--         liftM TokBop opP)
+--        (many space)
 
 
