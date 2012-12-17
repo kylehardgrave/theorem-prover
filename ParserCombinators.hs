@@ -161,46 +161,33 @@ t2'' = TestList [doParse opP "=>" ~?= [(Imp, "")],
                   doParse opP "|| B)" ~?= [(Or, " B)")]]
         
 
+-- | Operator Props must be surrounded in parentheses
+--  i.e. (A => B), (A && B), (A || B)
+opParser :: GenParser Char Prop
+opParser = do
+  char '('
+  exp1 <- exprP
+  op <- wsP opP
+  exp2 <- exprP
+  char ')'
+  return (Exp op exp1 exp2)
+
+negationParser :: GenParser Char Prop
+negationParser = do
+  t <- getC
+  case t of
+    '!' -> do
+      v <- exprP
+      return (neg v)
+    _   -> fail "Not negation"
+
+varParser :: GenParser Char Prop
+varParser = liftM Var (wsP varP) <-> fP
+
 exprP :: GenParser Char Prop
 exprP = wsP (choice [ opParser, getParens opParser, 
-                      falsityExprParser, getParens falsityExprParser,
                       negationParser, getParens negationParser,
-                      varParser, getParens varParser]) where
-
-  -- | Operator Props must be surrounded in parentheses
-  --  i.e. (A => B), (A && B), (A || B)
-  opParser :: GenParser Char Prop
-  opParser = do
-    char '('
-    exp1 <- exprP
-    op <- wsP opP
-    exp2 <- exprP
-    char ')'
-    return (Exp op exp1 exp2)
-
-  negationParser :: GenParser Char Prop
-  negationParser = do
-    t <- getC
-    case t of
-      '!' -> do
-        v <- exprP
-        return (neg v)
-      _   -> fail "Not negation"
-
-  falsityExprParser :: GenParser Char Prop
-  falsityExprParser = do
-    char '('
-    t <- getC
-    case t of
-      '!' -> do
-        op <- wsP opP
-        exp2 <- exprP
-        char ')'
-        return (Exp op F exp2)
-      _   -> fail "Not falsity"
-
-  varParser :: GenParser Char Prop
-  varParser = liftM Var (wsP varP) <-> fP
+                      varParser, getParens varParser])
 
 t3, t3', t3'', t3''':: Test
 t3 = TestList [doParse exprP "A" ~?= [(Var 'A', "")],
@@ -257,14 +244,5 @@ main = do
   _ <- runTestTT (TestList [ tp ])
   qc1
   return ()
-
-type Lexer = GenParser Char [Prop]
-
---lexer :: Lexer 
---lexer = sepBy1
---        (liftM (!) valueP <|>
---         liftM Var varP   <|>
---         liftM TokBop opP)
---        (many space)
 
 
