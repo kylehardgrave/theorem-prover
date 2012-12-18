@@ -120,17 +120,18 @@ constP s x = do
   return x
 
 -- | Parses a variable, ignores following uppers
---    Does not handle lowers in input, lowers are invalid
+--    Variables must be single upper Char letters or '!'
 --    See tests for definition
 varP :: GenParser Char Char
 varP = do
-  (x:_) <- many1 upper
-  return x
+  (x:xs) <- many1 upper
+  case xs of
+    [] -> return x
+    _  -> fail "Invalid Variable Name"
 
 t1, t1', t1'' :: Test
 t1 = doParse varP "A => B" ~?= [('A', " => B")]
--- YZ is ignored here, because it is invalid for variables to be strings
-t1' = doParse varP "XYZ && Y => Z" ~?= [('X', " && Y => Z")]
+t1' = doParse varP "X && Y => Z" ~?= [('X', " && Y => Z")]
 t1'' = doParse varP "X||Y => Z" ~?= [('X', "||Y => Z")]
 
 fP :: GenParser Char Prop
@@ -140,7 +141,7 @@ fP = do
 
 t2, t2' :: Test
 t2 = doParse fP "!A => B" ~?= [(F, "A => B")]
-t2' = TestList [doParse fP "!XYZ && Y => Z" ~?= [(F, "XYZ && Y => Z")],
+t2' = TestList [doParse fP "!X && Y => Z" ~?= [(F, "X && Y => Z")],
                   doParse fP "!X||Y => Z" ~?= [(F, "X||Y => Z")]]
 
 opP :: GenParser Char Op
