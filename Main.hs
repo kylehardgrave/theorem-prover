@@ -4,7 +4,7 @@
 module Main where
     import Parser
     import ParserCombinators
-    import PropLogic hiding (main)
+    import PropLogic
     import ProofTrees
 
     import Test.HUnit

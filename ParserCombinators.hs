@@ -8,7 +8,7 @@
 module ParserCombinators where
 
 import Parser
-import PropLogic hiding (main)
+import PropLogic
 import Control.Monad
 import Data.Char
 import System.IO
