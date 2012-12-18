@@ -7,6 +7,9 @@ import           Data.Maybe
 import qualified Data.Set as Set
 import           PropLogic
 
+import Parser
+import ParserCombinators
+
 -- | A proof.
 --data Proof where
 --  AssumeP :: Prop  -> Proof

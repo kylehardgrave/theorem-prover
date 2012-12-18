@@ -28,13 +28,22 @@ instance Eq Prop where
                                          (p1 == q2 && q1 == p2)
   (==) _ _                             = False
 
+-- | Pretty Print
+--instance Show Prop where
+--  show (Var c)   = [c] 
+--  show (Exp Imp p F) = "!" ++ (show p)
+--  show (Exp Imp p q) = "(" ++ (show p) ++ " => " ++ (show q) ++ ")"
+--  show (Exp And p q) = "(" ++ (show p) ++ " && " ++ (show q) ++ ")"
+--  show (Exp Or p q)  = "(" ++ (show p) ++ " || " ++ (show q) ++ ")"
+--  show F         = "!"
 
+-- | Show for ProofTree Prover
 instance Show Prop where
-  show (Var c)   = [c] 
-  show (Exp Imp p F) = "!" ++ (show p)
-  show (Exp Imp p q) = "(" ++ (show p) ++ " => " ++ (show q) ++ ")"
-  show (Exp And p q) = "(" ++ (show p) ++ " && " ++ (show q) ++ ")"
-  show (Exp Or p q)  = "(" ++ (show p) ++ " || " ++ (show q) ++ ")"
+  show (Var c)   = "(Var '" ++ [c] ++ "')"
+  show (Exp Imp p F) = "(neg" ++ (show p) ++ ")"
+  show (Exp Imp p q) = "(" ++ (show p) ++ " `imp` " ++ (show q) ++ ")"
+  show (Exp And p q) = "(" ++ (show p) ++ " <&&> " ++ (show q) ++ ")"
+  show (Exp Or p q)  = "(" ++ (show p) ++ " <||> " ++ (show q) ++ ")"
   show F         = "!"
 
 instance Show Op where
