@@ -36,7 +36,8 @@ class PP a where
 
 instance PP Proof where
   pp (P r (as, b) ps)  = PP.vcat [
-    (PP.text $ show as) <+> PP.text "|-" <+> (PP.text $ show b) <+> PP.parens (PP.text $ show r),
+    (PP.text $ show as) <+> PP.text "|-" <+> (PP.text $ show b) <+> 
+    PP.parens (PP.text $ show r),
     PP.nest 2 $ PP.vcat (map pp ps)
     ]
 

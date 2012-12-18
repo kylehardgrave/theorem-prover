@@ -1,7 +1,7 @@
 -- Advanced Programming, HW 5
 -- by Jason Mow (jmow), Kyle Hardgrave (kyleh)
 
-{-# OPTIONS -Wall -fwarn-tabs -fno-warn-type-defaults -fno-warn-unused-do-bind #-}
+{-# OPTIONS -Wall -fwarn-tabs -fno-warn-type-defaults -fno-warn-unused-do-bind -fno-warn-orphans #-}
 
 -- CIS 552, University of Pennsylvania
 -- based on Parsec and ReadP parsing libraries
