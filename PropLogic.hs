@@ -52,6 +52,11 @@ display (Exp And p q) = "(" ++ (display p) ++ " && " ++ (display q) ++ ")"
 display (Exp Or p q)  = "(" ++ (display p) ++ " || " ++ (display q) ++ ")"
 display F         = "!"
 
+displayList :: [Prop] -> String
+displayList [x] = display x
+displayList (x:xs) = display x ++ ", " ++ displayList xs
+displayList [] = ""
+
 -- | Logical negation
 neg :: Prop -> Prop
 neg p = Exp Imp p F

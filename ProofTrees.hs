@@ -7,8 +7,9 @@ import           Data.Maybe
 import qualified Data.Set as Set
 import           Text.PrettyPrint.HughesPJ (Doc, (<+>), ($$), (<>))
 import           Text.PrettyPrint.HughesPJ as PP
+import           Parser
+import           ParserCombinators
 import           PropLogic
-
 
 -- | A proposition in the Gentzen sequent calculus. Comprised of 
 -- assumptions and an inferred proposition.
@@ -36,7 +37,7 @@ class PP a where
 
 instance PP Proof where
   pp (P r (as, b) ps)  = PP.vcat [
-    (PP.text $ show as) <+> PP.text "|-" <+> (PP.text $ show b) <+> 
+    (PP.text $ displayList as) <+> PP.text "|-" <+> (PP.text $ display b) <+> 
     PP.parens (PP.text $ show r),
     PP.nest 2 $ PP.vcat (map pp ps)
     ]
