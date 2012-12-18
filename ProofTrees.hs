@@ -9,8 +9,6 @@ import           Data.Maybe
 import qualified Data.Set as Set
 import           Text.PrettyPrint.HughesPJ (Doc, (<+>), ($$), (<>))
 import           Text.PrettyPrint.HughesPJ as PP
-import           Parser
-import           ParserCombinators
 import           PropLogic
 
 -- | A proposition in the Gentzen sequent calculus. Comprised of 
