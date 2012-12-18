@@ -26,6 +26,7 @@ instance Eq Prop where
                                          (p1 == q2 && q1 == p2)
   (==) (Exp Or p1 q1)  (Exp Or p2 q2)  = (p1 == p2 && q1 == q2) ||
                                          (p1 == q2 && q1 == p2)
+  (==) _ _                             = False
 
 
 instance Show Prop where
