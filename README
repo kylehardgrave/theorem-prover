@@ -9,3 +9,5 @@ The propositional logic definitions are in PropLogic.hs. This class also contain
 The Parser is defined in Parser.hs and ParserCombinators.hs. These are from previous homeworks in CIS 552 and were extended to include functionality to parse propositional logic statements.
 
 The Prover is defined in ProofTrees.hs. Here we can generate the proof trees for propositional statements based on certain assumptions, or no assumptions.
+
+The Prover uses Gentzen sequent calculus to generate its proof trees. Note that it can only handle intuitionistic logic, and so proofs that would rely on proof-by-contradiction are disallowed. The rules for generating the trees consist of all the intuitionistic logic rules in sequent calculus, excluding the structural and quantifier rules (forall, exists, etc.). In order to specifically handle intuitionistic logic, the calculus has also been somewhat restricted to allow only one proposition on the right of the sequent.
