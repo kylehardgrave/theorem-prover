@@ -11,6 +11,6 @@ module Main where
 
     main :: IO()
     main = do
-      _ <- runTestTT (TestList [ tp ])
+      _ <- runTestTT (TestList [ t0, tp ])
       qc1
       return ()

@@ -100,9 +100,3 @@ t0 :: Test
 t0 = TestList [ display prop1 ~?= "((P && Q) => P)",
                 display prop2 ~?= "((A || (P && Q)) => P)"]
 
-main :: IO()
-main = do
-  _ <- runTestTT (TestList [ t0 ])
-  return ()
-
-
