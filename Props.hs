@@ -1,8 +1,7 @@
 -- Some example propositions
+module Props where
+
 import PropLogic
-
-
-p = Imp (And (Var 'P') (Var 'Q')) (Var 'P')
 
 
 -- | De Morgan's Laws

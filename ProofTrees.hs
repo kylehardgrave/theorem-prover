@@ -5,35 +5,18 @@ module ProofTrees where
 import           Data.List
 import           Data.Maybe
 import qualified Data.Set as Set
+import           Text.PrettyPrint.HughesPJ (Doc, (<+>), ($$), (<>))
+import           Text.PrettyPrint.HughesPJ as PP
 import           PropLogic
 
--- | A proof.
---data Proof where
---  AssumeP :: Prop  -> Proof
---  ImpP    :: Proof -> Proof
---  AndP    :: Proof -> Proof -> Proof
---  OrP1 :: Proof a -> Proof (Or a b)
---  OrP2 :: Proof b -> Proof (Or a b)
---  AndP :: Proof a -> Proof b -> Proof (And a b)
---  VarP :: Proof (And a b) -> Proof
 
---data Proof = Axiom | P Rule Seq [Proof]
---data Sequent = Seq [Prop] [Prop]
-{-
-data Rule = Atom | Cut -- Identity rules
-          | AndL1 | AndL2 | AndR
-          | OrL | OrR1 | OrR2
-          | ImpL | ImpR
-          | NegL | NegR
-          | WL | WR
-          | CL | CR
-          | PL | PR-}
-
+-- | A proposition in the Gentzen sequent calculus. Comprised of 
+-- assumptions and an inferred proposition.
 type Seq = ([Prop], Prop)
 
+-- | A proof tree.
 data Proof where
   Axiom :: Seq -> Proof 
---  Cut   :: Seq -> Proof -> Proof -> Proof
   OrL   :: Seq -> Proof -> Proof -> Proof
   AndL1 :: Seq -> Proof -> Proof
   AndL2 :: Seq -> Proof -> Proof
@@ -44,11 +27,23 @@ data Proof where
   AndR  :: Seq -> Proof -> Proof -> Proof
   ImpR  :: Seq -> Proof -> Proof
   NegR  :: Seq -> Proof -> Proof
-  deriving Show
 
 
---instance Show Prof where
---  show 
+instance Show Proof where
+  show (Axiom (as, b))      = (show as) ++ " |- " ++ (show b) ++ (" (axiom)\n")
+  show (OrL   (as, b) p p') = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
+                              ++ show p'
+  show (AndL1 (as, b) p)    = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
+  show (AndL2 (as, b) p)    = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
+  show (ImpL  (as, b) p p') = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
+                              ++ show p'
+  show (NegL  (as, b) p)    = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
+  show (OrR1  (as, b) p)    = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
+  show (OrR2  (as, b) p)    = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
+  show (AndR  (as, b) p p') = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
+                              ++ show p'
+  show (ImpR  (as, b) p)    = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
+  show (NegR  (as, b) p)    = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
 
 prove :: Seq -> Maybe Proof
 prove s = case allProofs s of
