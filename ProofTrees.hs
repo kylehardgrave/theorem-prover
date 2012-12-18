@@ -55,9 +55,10 @@ prove s = case allProofs s of
   (p:_) -> p
   []    -> Nothing
 
-allProofs (as, bs) = [p | a <- as
-                          , rule <- rules
-                          , p <- [rule (a : delete a as, bs)], isJust p] 
+allProofs s@(as, bs) = [p | a <- as
+                        , rule <- rules
+                        , p <- [rule (a : delete a as, bs)], isJust p] 
+                     ++ [p | rule <- rules, p <- [rule s], isJust p]
 
 rules :: [Seq -> Maybe Proof]
 rules = [proveAxiom, proveOrR, proveAndR, proveImpR, proveNegR,
