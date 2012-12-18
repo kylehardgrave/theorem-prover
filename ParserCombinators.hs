@@ -231,7 +231,7 @@ arbPropGen n = QC.frequency ([
 
 propParse :: Prop -> Bool
 propParse st = doParse exprP p == [(st, "")] where
-  p = show st
+  p = display st
 
 qc1 :: IO ()
 qc1 = QC.quickCheck propParse
@@ -239,11 +239,5 @@ qc1 = QC.quickCheck propParse
 
 tp :: Test
 tp = TestList [ t1, t1', t1'', t2, t2', t2'', t3, t3', t3'', t3''']
-
-main :: IO()
-main = do
-  _ <- runTestTT (TestList [ tp ])
-  qc1
-  return ()
 
 
