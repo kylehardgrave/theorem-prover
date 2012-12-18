@@ -28,16 +28,8 @@ instance Eq Prop where
                                          (p1 == q2 && q1 == p2)
   (==) _ _                             = False
 
--- | Pretty Print
---instance Show Prop where
---  show (Var c)   = [c] 
---  show (Exp Imp p F) = "!" ++ (show p)
---  show (Exp Imp p q) = "(" ++ (show p) ++ " => " ++ (show q) ++ ")"
---  show (Exp And p q) = "(" ++ (show p) ++ " && " ++ (show q) ++ ")"
---  show (Exp Or p q)  = "(" ++ (show p) ++ " || " ++ (show q) ++ ")"
---  show F         = "!"
-
--- | Show for ProofTree Prover
+-- | Show outputs in format for creation of data objects
+--    For use to input into Prover, etc.
 instance Show Prop where
   show (Var c)   = "(Var '" ++ [c] ++ "')"
   show (Exp Imp p F) = "(neg" ++ (show p) ++ ")"
@@ -51,8 +43,14 @@ instance Show Op where
   show And = "(&&)"
   show Or  = "(||)"  
 
-display :: (Show a) => a -> String
-display = show
+-- | Show outputs in nicely formatted, human-readable format
+display :: Prop -> String
+display (Var c)   = [c] 
+display (Exp Imp p F) = "!" ++ (display p)
+display (Exp Imp p q) = "(" ++ (display p) ++ " => " ++ (display q) ++ ")"
+display (Exp And p q) = "(" ++ (display p) ++ " && " ++ (display q) ++ ")"
+display (Exp Or p q)  = "(" ++ (display p) ++ " || " ++ (display q) ++ ")"
+display F         = "!"
 
 -- | Logical negation
 neg :: Prop -> Prop
