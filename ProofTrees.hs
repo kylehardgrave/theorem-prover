@@ -15,35 +15,34 @@ import           PropLogic
 type Seq = ([Prop], Prop)
 
 -- | A proof tree.
-data Proof where
-  Axiom :: Seq -> Proof 
-  OrL   :: Seq -> Proof -> Proof -> Proof
-  AndL1 :: Seq -> Proof -> Proof
-  AndL2 :: Seq -> Proof -> Proof
-  ImpL  :: Seq -> Proof -> Proof -> Proof
-  NegL  :: Seq -> Proof -> Proof
-  OrR1  :: Seq -> Proof -> Proof
-  OrR2  :: Seq -> Proof -> Proof
-  AndR  :: Seq -> Proof -> Proof -> Proof
-  ImpR  :: Seq -> Proof -> Proof
-  NegR  :: Seq -> Proof -> Proof
+data Proof = P Rule Seq [Proof]
 
+data Rule = Axiom
+          | OrL  
+          | AndL1
+          | AndL2
+          | ImpL 
+          | NegL 
+          | OrR1 
+          | OrR2 
+          | AndR 
+          | ImpR 
+          | NegR
+          deriving Show
+
+
+class PP a where
+  pp :: a -> Doc
+
+instance PP Proof where
+  pp (P r (as, b) ps)  = PP.vcat [
+    (PP.text $ show as) <+> PP.text "|-" <+> (PP.text $ show b) <+> PP.parens (PP.text $ show r),
+    PP.nest 2 $ PP.vcat (map pp ps)
+    ]
 
 instance Show Proof where
-  show (Axiom (as, b))      = (show as) ++ " |- " ++ (show b) ++ (" (axiom)\n")
-  show (OrL   (as, b) p p') = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
-                              ++ show p'
-  show (AndL1 (as, b) p)    = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
-  show (AndL2 (as, b) p)    = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
-  show (ImpL  (as, b) p p') = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
-                              ++ show p'
-  show (NegL  (as, b) p)    = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
-  show (OrR1  (as, b) p)    = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
-  show (OrR2  (as, b) p)    = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
-  show (AndR  (as, b) p p') = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
-                              ++ show p'
-  show (ImpR  (as, b) p)    = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
-  show (NegR  (as, b) p)    = (show as) ++ " |- " ++ (show b) ++ "\n" ++ show p
+  show = show . pp
+
 
 prove :: Seq -> Maybe Proof
 prove s = case allProofs s of
@@ -60,96 +59,52 @@ rules = [proveAxiom, proveOrR, proveAndR, proveImpR, proveNegR,
          proveOrL, proveAndL, proveImpL, {-proveAtomicL,-} proveNegL]
 
 proveAxiom :: Seq -> Maybe Proof
-proveAxiom s@(as, p@(Var c)) | p `elem` as = Just $ Axiom s
+proveAxiom s@(as, p@(Var c)) | p `elem` as = Just $ P Axiom s []
                              | otherwise   = Nothing
 proveAxiom _ = Nothing
 
 proveOrR :: Seq -> Maybe Proof
 proveOrR s@(as, Exp Or p q) = case (prove (as, p), prove (as, q)) of
-    (Just t, _) -> Just $ OrR1 s t
-    (_, Just t) -> Just $ OrR2 s t
+    (Just t, _) -> Just $ P OrR1 s [t]
+    (_, Just t) -> Just $ P OrR2 s [t]
     _           -> Nothing
 proveOrR _ = Nothing
 
 proveAndR :: Seq -> Maybe Proof
 proveAndR s@(as, Exp And p q) = do t1 <- prove (as, p)
                                    t2 <- prove (as, q)
-                                   return $ AndR s t1 t2
+                                   return $ P AndR s [t1, t2]
 proveAndR _ = Nothing
 
 proveImpR :: Seq -> Maybe Proof
-proveImpR s@(as, Exp Imp p q) = prove (p:as, q) >>= return . ImpR s
+proveImpR s@(as, Exp Imp p q) = prove (p:as, q) >>= return . P ImpR s . (:[])
 proveImpR _ = Nothing
 
 proveOrL :: Seq -> Maybe Proof
 proveOrL s@(Exp Or p q : as, b) = do t1 <- prove (p:as, b)
                                      t2 <- prove (q:as, b)
-                                     return $ OrL s t1 t2
+                                     return $ P OrL s [t1, t2]
 proveOrL _ = Nothing
 
 proveAndL :: Seq -> Maybe Proof
 proveAndL s@(Exp And p q : as, b) =
   case (prove (p:as, b), prove (q:as, b)) of
-    (Just t, _) -> Just $ AndL1 s t
-    (_, Just t) -> Just $ AndL2 s t
+    (Just t, _) -> Just $ P AndL1 s [t]
+    (_, Just t) -> Just $ P AndL2 s [t]
     _           -> Nothing
 proveAndL _ = Nothing
 
 proveImpL :: Seq -> Maybe Proof
 proveImpL s@(Exp Imp p q : as, b) = do t1 <- prove (as, p)
                                        t2 <- prove (q:as, b)
-                                       return $ ImpL s t1 t2
+                                       return $ P ImpL s [t1, t2]
 proveImpL _ = Nothing
 
 proveNegL :: Seq -> Maybe Proof
-proveNegL s@(Exp Imp p F : as, _) = prove (as, p) >>= return . NegL s
+proveNegL s@(Exp Imp p F : as, _) = prove (as, p) >>= return . P NegL s . (:[])
 proveNegL _ = Nothing
 
 proveNegR :: Seq -> Maybe Proof
-proveNegR s@(Exp Imp p F : as, _) = prove (as, p) >>= return . NegL s
-proveNegR s@(as, Exp Imp p F) = prove (p:as, F) >>= return . NegR s
+proveNegR s@(Exp Imp p F : as, _) = prove (as, p) >>= return . P NegL s . (:[])
+proveNegR s@(as, Exp Imp p F) = prove (p:as, F) >>= return . P NegR s . (:[])
 proveNegR _ = Nothing
-
-{-proveAtomicL :: Seq -> Maybe Proof
-proveAtomicL (Var c : as, b) = prove (as, b)
-proveAtomicL (F : as, b) = prove (as, b)
-proveAtomicL _ = Nothing-}
-
-
-{-prove (Var c:as) bs = prove Seq as bs
-prove (Imp a F : as) bs = do p <- prove as (a:bs)
-                             case p of
-                               P
-                             return P NegL-}
-
---prove :: Seq -> Maybe Proof
---prove
-
---prove (Seq as (Var c)) = P Atom Axiom
---prove (Seq as (Imp p
-
-{-
--- First pass at the proof types, sans monads or GADTs
-prove :: Gam -> Prop -> Maybe Proof
-prove g p | p `Set.member` g = Just $ AssumeP p
-          | otherwise        = prove' p
-  where prove' (Var _) = Nothing
-        prove' (Imp q r) = case prove (Set.insert q g) r of
-          Just t -> ImpP t p
-          _      -> Nothing
-        prove' (And q r) = case (prove g q, prove g r) of
-          (Just t, Just u) -> AndP t u p
-          _                -> Nothing
-        prove' (Or q r) = case (prove g q, prove g r) of
-          (Just t, _) -> OrP t p
-          (_, Just t) -> OrP t p
-          _           -> Nothing
-        prove' 
-  
-  
-  @(Var c) | c `Set.member` p = Just $ VarP g
-                | otherwise        = Nothing
-prove g (And a b) = 
--}
-
-
