@@ -3,7 +3,6 @@
 
 module PropLogic where
 
---import Test.QuickCheck
 import Test.HUnit
 
 -- | A proposition in formal, propositional logic
@@ -11,7 +10,6 @@ data Prop where
   F   :: Prop
   Var :: Char -> Prop
   Exp :: Op -> Prop -> Prop -> Prop
-  deriving Eq
 
 data Op =
     And
@@ -19,12 +17,16 @@ data Op =
   | Imp
   deriving Eq
 
--- This is the same as:
---data Prop = F
---          | Var Char
---          | And Prop Prop
---          | Or Prop Prop
---          | Imp Prop Prop
+-- We define equality of Props to account for commutativity
+instance Eq Prop where
+  (==) F               F               = True
+  (==) (Var c1)        (Var c2)        = c1 == c2
+  (==) (Exp Imp p1 q1) (Exp Imp p2 q2) = p1 == p2 && q1 == q2
+  (==) (Exp And p1 q1) (Exp And p2 q2) = (p1 == p2 && q1 == q2) ||
+                                         (p1 == q2 && q1 == p2)
+  (==) (Exp Or p1 q1)  (Exp Or p2 q2)  = (p1 == p2 && q1 == q2) ||
+                                         (p1 == q2 && q1 == p2)
+
 
 instance Show Prop where
   show (Var c)   = [c] 
@@ -73,15 +75,15 @@ p <|> q = (Var p) <||> (Var q)
 (!) :: Char -> Prop
 (!) p = Exp Imp (Var p) F
 
--- | Simple Tests
-p1 :: Prop
-p1 = Exp Imp (Exp And (Var 'P') (Var 'Q')) (Var 'P')
-p2 :: Prop
-p2 = Exp Imp (Exp Or (Var 'A') (Exp And (Var 'P') (Var 'Q'))) (Var 'P')
+-- Simple Tests
+prop1 :: Prop
+prop1 = Exp Imp (Exp And (Var 'P') (Var 'Q')) (Var 'P')
+prop2 :: Prop
+prop2 = Exp Imp (Exp Or (Var 'A') (Exp And (Var 'P') (Var 'Q'))) (Var 'P')
 
 t0 :: Test
-t0 = TestList [ display p1 ~?= "((P && Q) => P)",
-                display p2 ~?= "((A || (P && Q)) => P)"]
+t0 = TestList [ display prop1 ~?= "((P && Q) => P)",
+                display prop2 ~?= "((A || (P && Q)) => P)"]
 
 main :: IO()
 main = do
