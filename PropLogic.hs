@@ -1,3 +1,5 @@
+-- Advanced Programming, Final Project
+-- by Jason Mow (jmow), Kyle Hardgrave (kyleh)
 {-# LANGUAGE GADTs #-}
 {-# OPTIONS_GHC -XFlexibleInstances #-}
 

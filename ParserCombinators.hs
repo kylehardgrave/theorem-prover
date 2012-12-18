@@ -1,4 +1,4 @@
--- Advanced Programming, HW 5
+-- Advanced Programming, Final Project
 -- by Jason Mow (jmow), Kyle Hardgrave (kyleh)
 
 {-# OPTIONS -Wall -fwarn-tabs -fno-warn-type-defaults -fno-warn-unused-do-bind -fno-warn-orphans #-}

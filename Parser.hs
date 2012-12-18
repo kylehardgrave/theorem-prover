@@ -1,5 +1,6 @@
--- Advanced Programming, HW 7
+-- Advanced Programming, Final Project
 -- by Jason Mow (jmow), Kyle Hardgrave (kyleh)
+
 {-# OPTIONS -Wall -fwarn-tabs -fno-warn-type-defaults  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE TypeSynonymInstances, FlexibleContexts, NoMonomorphismRestriction, FlexibleInstances #-}
