@@ -2,6 +2,7 @@
 
 module ProofTrees where
 
+import           Data.List
 import           Data.Maybe
 import qualified Data.Set as Set
 import           PropLogic
@@ -32,7 +33,7 @@ type Seq = ([Prop], Prop)
 
 data Proof where
   Axiom :: Seq -> Proof 
-  Cut   :: Seq -> Proof -> Proof -> Proof
+--  Cut   :: Seq -> Proof -> Proof -> Proof
   OrL   :: Seq -> Proof -> Proof -> Proof
   AndL1 :: Seq -> Proof -> Proof
   AndL2 :: Seq -> Proof -> Proof
@@ -54,11 +55,13 @@ prove s = case allProofs s of
   (p:_) -> p
   []    -> Nothing
 
-allProofs s =  [p | rule <- rules, p <- [rule s], isJust p] 
+allProofs (as, bs) = [p | a <- as
+                          , rule <- rules
+                          , p <- [rule (a : delete a as, bs)], isJust p] 
 
 rules :: [Seq -> Maybe Proof]
 rules = [proveAxiom, proveOrR, proveAndR, proveImpR, proveNegR,
-         proveOrL, proveAndL, proveImpL, proveAtomicL, proveNegL]
+         proveOrL, proveAndL, proveImpL, {-proveAtomicL,-} proveNegL]
 
 proveAxiom :: Seq -> Maybe Proof
 proveAxiom s@(as, p@(Var c)) | p `elem` as = Just $ Axiom s
@@ -111,10 +114,10 @@ proveNegR s@(Exp Imp p F : as, _) = prove (as, p) >>= return . NegL s
 proveNegR s@(as, Exp Imp p F) = prove (p:as, F) >>= return . NegR s
 proveNegR _ = Nothing
 
-proveAtomicL :: Seq -> Maybe Proof
+{-proveAtomicL :: Seq -> Maybe Proof
 proveAtomicL (Var c : as, b) = prove (as, b)
 proveAtomicL (F : as, b) = prove (as, b)
-proveAtomicL _ = Nothing
+proveAtomicL _ = Nothing-}
 
 
 {-prove (Var c:as) bs = prove Seq as bs
