@@ -37,10 +37,12 @@ data Proof where
   AndL1 :: Seq -> Proof -> Proof
   AndL2 :: Seq -> Proof -> Proof
   ImpL  :: Seq -> Proof -> Proof -> Proof
+  NegL  :: Seq -> Proof -> Proof
   OrR1  :: Seq -> Proof -> Proof
   OrR2  :: Seq -> Proof -> Proof
   AndR  :: Seq -> Proof -> Proof -> Proof
   ImpR  :: Seq -> Proof -> Proof
+  NegR  :: Seq -> Proof -> Proof
   deriving Show
 
 
@@ -48,9 +50,11 @@ data Proof where
 --  show 
 
 prove :: Seq -> Maybe Proof
-prove s = case [p | rule <- rules, p <- [rule s], isJust p] of
+prove s = case allProofs s of
   (p:_) -> p
   []    -> Nothing
+
+allProofs s =  [p | rule <- rules, p <- [rule s], isJust p] 
 
 rules :: [Seq -> Maybe Proof]
 rules = [proveAxiom, proveOrR, proveAndR, proveImpR,
@@ -97,6 +101,14 @@ proveImpL s@(Exp Imp p q : as, b) = do t1 <- prove (as, p)
                                        t2 <- prove (q:as, b)
                                        return $ ImpL s t1 t2
 proveImpL _ = Nothing
+
+proveNegL :: Seq -> Maybe Proof
+proveNegL s@(Exp Imp p F : as, _) = prove (as, p) >>= return . NegL s
+proveNegL _ = Nothing
+
+proveNegR :: Seq -> Maybe Proof
+proveNegR s@(Exp Imp p F : as, _) = prove (as, p) >>= return . NegL s
+proveNegR s@(as, Exp Imp p F) = prove (p:as, F) >>= return . NegR s
 
 proveAtomicL :: Seq -> Maybe Proof
 proveAtomicL (Var c : as, b) = prove (as, b)
