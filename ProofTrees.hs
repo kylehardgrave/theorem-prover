@@ -2,6 +2,7 @@
 
 module ProofTrees where
 
+import           Data.Maybe
 import qualified Data.Set as Set
 import           PropLogic
 
@@ -46,30 +47,61 @@ data Proof where
 --instance Show Prof where
 --  show 
 
-
 prove :: Seq -> Maybe Proof
-prove s = case s of
-  (as, p@(Var c)) -> if p `elem` as then Just $ Axiom s else Nothing
-  (as, Exp Or p q) -> case (prove (as, p), prove (as, q)) of
+prove s = case [p | rule <- rules, p <- [rule s], isJust p] of
+  (p:_) -> p
+  []    -> Nothing
+
+rules :: [Seq -> Maybe Proof]
+rules = [proveAxiom, proveOrR, proveAndR, proveImpR,
+         proveOrL, proveAndL, proveImpL, proveAtomicL]
+
+proveAxiom :: Seq -> Maybe Proof
+proveAxiom s@(as, p@(Var c)) | p `elem` as = Just $ Axiom s
+                             | otherwise   = Nothing
+proveAxiom _ = Nothing
+
+proveOrR :: Seq -> Maybe Proof
+proveOrR s@(as, Exp Or p q) = case (prove (as, p), prove (as, q)) of
     (Just t, _) -> Just $ OrR1 s t
     (_, Just t) -> Just $ OrR2 s t
     _           -> Nothing
-  (as, Exp And p q) -> do t1 <- prove (as, p)
-                          t2 <- prove (as, q)
-                          return $ AndR s t1 t2
-  (as, Exp Imp p q) -> prove (p:as, q) >>= return . ImpR s
-  (Exp Or p q : as, b) -> do t1 <- prove (p:as, b)
-                             t2 <- prove (q:as, b)
-                             return $ OrL s t1 t2
-  (Exp And p q : as, b) -> case (prove (p:as, b), prove (q:as, b)) of
-    (Just t, _) -> Just $ OrR1 s t
-    (_, Just t) -> Just $ OrR2 s t
+proveOrR _ = Nothing
+
+proveAndR :: Seq -> Maybe Proof
+proveAndR s@(as, Exp And p q) = do t1 <- prove (as, p)
+                                   t2 <- prove (as, q)
+                                   return $ AndR s t1 t2
+proveAndR _ = Nothing
+
+proveImpR :: Seq -> Maybe Proof
+proveImpR s@(as, Exp Imp p q) = prove (p:as, q) >>= return . ImpR s
+proveImpR _ = Nothing
+
+proveOrL :: Seq -> Maybe Proof
+proveOrL s@(Exp Or p q : as, b) = do t1 <- prove (p:as, b)
+                                     t2 <- prove (q:as, b)
+                                     return $ OrL s t1 t2
+proveOrL _ = Nothing
+
+proveAndL :: Seq -> Maybe Proof
+proveAndL s@(Exp And p q : as, b) =
+  case (prove (p:as, b), prove (q:as, b)) of
+    (Just t, _) -> Just $ AndL1 s t
+    (_, Just t) -> Just $ AndL2 s t
     _           -> Nothing
-  (Exp Imp p q : as, b) -> do t1 <- prove (as, p)
-                              t2 <- prove (q:as, b)
-                              return $ ImpL s t1 t2
-  (_ : as, b) -> prove (as, b)
-  _ -> Nothing
+proveAndL _ = Nothing
+
+proveImpL :: Seq -> Maybe Proof
+proveImpL s@(Exp Imp p q : as, b) = do t1 <- prove (as, p)
+                                       t2 <- prove (q:as, b)
+                                       return $ ImpL s t1 t2
+proveImpL _ = Nothing
+
+proveAtomicL :: Seq -> Maybe Proof
+proveAtomicL (Var c : as, b) = prove (as, b)
+proveAtomicL (F : as, b) = prove (as, b)
+proveAtomicL _ = Nothing
 
 
 {-prove (Var c:as) bs = prove Seq as bs
